@@ -1,0 +1,19 @@
+{
+  "name": "DBMAnager",
+  "version": "1.0.0",
+  "main": "oracle.js",
+  "repository": "",
+  "author": "Ramon Alcarria",
+  "license": "none",
+  "scripts": {
+    "start": "node oracle.js",
+    "dev": "nodemon oracle.js"
+  },
+  "dependencies": {
+    "mysql": "^2.16.0",
+    "web3": "^1.0.0-beta.46"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.6"
+  }
+}

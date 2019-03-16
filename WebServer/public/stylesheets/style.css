@@ -1,0 +1,23 @@
+a {
+  color: #00B7FF;
+}
+
+body {
+    background-color: lightyellow;
+    font-family: Comic Sans MS;
+}
+
+h1 {
+    color: blue;
+    text-align: center;
+    background: lightblue;
+}
+
+h2 {
+    color: green;
+}
+
+p {
+    color:green;
+    font-size: 17px;
+}

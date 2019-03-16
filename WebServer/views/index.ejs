@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="utf-8">
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+	<script src="http://code.jquery.com/jquery-3.3.1.min.js"></script>
+  </head>
+  <body>
+  
+  <script>
+
+function sendRequestInsert(){
+		$.get('/sendRequestInsert', {request :$('#animal').val(), request1 :$('#identificadorAnimal').val(), request2 :$('#identificadorLoteDes').val(), request3 :$('#identificadorDespiece').val(), request4 :$('#identificadorNegocio').val(), request5 :$('#tipoNegocio').val(), request6 :$('#tipoMovimiento').val(), request7 :$('#usuario').val(), request8 :$('#fecha').val(), tipo :"insert"}, function(data){ 
+		// El primer valor con '' indica que seguimos en la misma página 
+		// $(selector).val() devuelve atributo value
+		// $(selector).val(value) establece el valor del atributo value
+			alert("String modified in the Blockchain");
+		});
+	}
+	// Ver app.js, las variables se definen allí: setstring, increase...
+	// jQuery.get( url [, data ] [, success ] [, dataType ] )
+	// Permite cargar datos desde el servidor mediante un HTTP GET request 
+	function sendRequestSelect(){
+		$.get('/sendRequestSelect', {request :$('#0setcustom').val(), request1 :$('#1setcustom').val(), request2 :$('#2setcustom').val(), request3 :$('#3setcustom').val(), request4 :$('#4setcustom').val(), tipo :"select"}, function(data){ 
+		// El primer valor con '' indica que seguimos en la misma página 
+		// $(selector).val() devuelve atributo value
+		// $(selector).val(value) establece el valor del atributo value
+			alert("String modified in the Blockchain");
+		});
+	}
+	
+	function obtenerDatos(){
+		$.get('/obtenerDatos', {request :$('#animalid').val(), request1 :$('#negocioid').val(), request2 :$('#evento').val(), tipo :"comparar"}, function(data){ 
+			console.log("REQUEST" + request);
+		// El primer valor con '' indica que seguimos en la misma página 
+		// $(selector).val() devuelve atributo value
+		// $(selector).val(value) establece el valor del atributo value
+			alert("String modified in the Blockchain");
+		});
+	}
+
+	function comparar(){
+		$.get('/comparar', function(data){
+			//$('#getcustom').html(data.getcccustom);   // Coge los elementos con id = "getcustom"
+			alert("Comparacion de hashes");
+
+		}/*, 'json'*/);  // Se devuelve en formato JSON
+	}
+
+	function getRequest(){
+		$.get('/getRequest', function(data){
+			$('#getcustom').html(data.getcccustom);   // Coge los elementos con id = "getcustom"
+		}/*, 'json'*/);  // Se devuelve en formato JSON
+	}
+	
+
+	function executeRequest(){
+		$.get('/executeRequest', function(data){
+			alert("MySQL custom request sent");
+		});
+	}	
+
+function getEvent(){
+		$.get('/getEvent',  function(data){
+			$('#event').html(data.disssplay);   // Coge los elementos con id = "resultcustom"
+		}, 'json');  
+	}
+	
+	function getResult(){
+		$.get('/getResult',  function(data){
+			$('#resultcustom').html(data.disssplay);   // Coge los elementos con id = "resultcustom"
+		}, 'json');  
+	}
+
+	// Ejemplos:
+
+	// INSERT INTO video_games (ID, name, owner, console, price, players, comments) VALUES (51, 'New Super Mario Bros', 'John', 'Wii', 4, 1, 'Incredible!')
+
+	// SELECT name FROM video_games WHERE console = 'Nintendo 64'
+
+	// SELECT nom FROM jeux_video WHERE prix >30
+
+	// UPDATE video_games SET owner='Kathy' WHERE ID=1
+
+</script>	
+  
+    <h1><%= title %></h1>	
+	<h1> HTML-Blockchain-MySQL Interaction </h1>
+	<h2> MySQL request </h2>
+<fieldset>
+		INSERT INTO `animalTransaccion` (`Animal`, `identificadorAnimal`, `identificadorLoteDes`, `identificadorDespiece`, `identificadorNegocio`, `tipoNegocio`, `tipoMovimiento`, `usuario`, `fecha`) VALUES (
+		<input type="text" id = "animal" size="20">, 
+		<input type="text" id = "identificadorAnimal" size="20">,
+		<input type="text" id = "identificadorLoteDes" size="20">, 
+		<input type="text" id = "identificadorDespiece" size="20">, 
+		<input type="text" id = "identificadorNegocio" size="20">, 
+		<select id="tipoNegocio" >
+		<option selected disabled>seleccione:</option>
+		<option value="0">Ganaderia</option>
+		<option value="1">Matadero</option>
+		<option value="2">Sala despiece</option>
+		<option value="3">Comercializadora</option>
+		<option value="4">Transportista</option>
+		</select>,
+		<input type="text" id = "tipoMovimiento" size="20">, 
+		<input type="text" id = "usuario" size="20">, 
+		<input type="text" id = "fecha" size="20"> );
+			<input type="button" value="Set your request - insert" onclick="sendRequestInsert()"></br></br>
+</fieldset>
+	<fieldset>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+		Select (tipoMovimiento, usuario, fecha) from animalTransaccion where identificadorAnimal=
+		<input type="text" id = "0setcustom" size="20"> and identificadorLoteDes = 
+		<input type="text" id = "1setcustom" size="20"> and identificarDespiece = 
+		<input type="text" id = "2setcustom" size="20"> and identificadorNegocio = 
+		<input type="text" id = "3setcustom" size="20"> and tipoNegocio = 
+		<select id="4setcustom" >
+		<option selected disabled>seleccione:</option>
+		<option value="0">Ganaderia</option>
+		<option value="1">Matadero</option>
+		<option value="2">Sala despiece</option>
+		<option value="3">Comercializadora</option>
+		<option value="4">Transportista</option>
+		</select>
+			<input type="button" value="Set your request - select" onclick="sendRequestSelect()"></br></br>
+</fieldset>
+
+	<h2> MySQL compare </h2>
+	<fieldset>
+		Animal id: <input type="text" id = "animalid" size="20"> 
+		Negocio id: <input type="text" id = "negocioid" size="20"> 
+		Evento: <input type="text" id = "evento" size="20">
+			<input type="button" value="Comparacion" onclick="obtenerDatos()"></br></br>
+			<input type="button" value="Comparacion de hashes" onclick="comparar()"></br></br>
+
+	</fieldset>
+
+
+
+		<h2> Remember your request </h2>
+		<input type="button" value="Request in the Blockchain" onclick="getRequest()">
+		<p id = "getcustom"> Request </p></br>
+
+		<h2> Emit your request  </h2>
+		<input type="button" value="MySQL request" onclick="executeRequest()"></br>
+		
+		<h2> Get the event </h2>
+		<input type="button" value="Click for event!" onclick="getEvent()">
+		<p id = "event"> Result </p></br>
+
+        <h2> Get the result </h2>
+		<input type="button" value="Click for result!" onclick="getResult()">
+		<p id = "resultcustom"> Result </p></br>
+
+		
+
+        <input type="button" value="CLICK FOR NEW REQUEST!" onclick="window.location.reload()">
+  </body>
+</html>
