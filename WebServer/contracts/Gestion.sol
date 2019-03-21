@@ -16,7 +16,7 @@ contract Gestion {
     event customEvent (string mysqlcustom);
     // Event used to send a MySQL Query. The input is the query input. It allows to record the query
 	
-	
+	event customEventResult(string mysqlresult);
 	
 	function setCustom (string memory input) public {
 		custom = input;
@@ -162,5 +162,8 @@ contract Gestion {
 
 
 	*/
+	function CreateCustomEventResult(string memory input) public{
+		emit customEventResult(input);
+	}
 
 }

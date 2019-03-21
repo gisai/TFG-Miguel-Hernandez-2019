@@ -5,6 +5,8 @@ var Web3            = require('web3'),
     path            = require('path')
     GestionJSON  = require(path.join(__dirname, '../build/contracts/Gestion.json'));
 
+var resultado="";
+
 const contractAddress = "0x586f02AF0f59867CC3D73B663a718Af9468d2142";
 
 if(typeof web3 !== 'undefined'){
@@ -23,6 +25,32 @@ web3.eth.getAccounts((err,accounts)=> {
 
 
 var gestionContract = new web3.eth.Contract(GestionJSON.abi, contractAddress, { gas: 4000000 });
+
+
+/*************************RESULT CALLED BY AN EVENT *************************/
+
+
+gestionContract.events.customEventResult({fromBlock:null}, (error, event) => { console.log(event); }).on('data',(event) => {
+	//Cambiar el customEvent fromBlock a ultimo bloque*************************************************************
+  //errores
+    console.log('Received result event!');
+    callMyResult();
+});
+
+function callMyResult(){
+  gestionContract.methods.getResult().call({ from : web3.eth.defaultAccount}).then((result, error) => {
+    if(!error){
+  		resultado=result;
+    }
+    else{
+      console.error(error);
+    }
+  });
+}
+
+
+//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -60,30 +88,33 @@ router.get('/sendRequestInsert', function(req, res, next) {
     //añadido lo de gas
     //para que no de error out of gas
 
+
+
+
+
+
     //------------------------------------------------------------
-    	gestionContract.methods.getCustom().call({ from : web3.eth.defaultAccount}).then((result, error) => {
+		console.log('Getting stored request from smart contract');
+     	gestionContract.methods.getCustom().call({ from : web3.eth.defaultAccount}).then((result, error) => {
 		if (result){
-			var obj = JSON.parse(result);
-			console.log(obj[0].tipo);
+		 	var obj = JSON.parse(result);
+		 	//console.log(obj[0].tipo);
 
-			if (obj[0].tipo=="select"){
-   		    //console.log(obj[0].tipo + "select");
-   		    var query = "Select * from animalTransaccion where identificadorAnimal like '" + obj[0].request + "' and identificadorLoteDes like '" + obj[0].request1 + "' and identificadorDespiece like '" + obj[0].request2 + "' and identificadorNegocio like '"+ obj[0].request3 + "' and tipoNegocio like "  + obj[0].request4;
+		 	if (obj[0].tipo=="select"){
+    		    //console.log(obj[0].tipo + "select");
+    		    var query = "Select * from animalTransaccion where identificadorAnimal like '" + obj[0].request + "' and identificadorLoteDes like '" + obj[0].request1 + "' and identificadorDespiece like '" + obj[0].request2 + "' and identificadorNegocio like '"+ obj[0].request3 + "' and tipoNegocio like "  + obj[0].request4;	
       		}else if (obj[0].tipo=="insert"){
-      			//console.log(obj[0].tipo + "INSERT");
-   		    var query = "INSERT INTO `animalTransaccion` (`Animal`, `identificadorAnimal`, `identificadorLoteDes`, `identificadorDespiece`, `identificadorNegocio`, `tipoNegocio`, `tipoMovimiento`, `usuario`, `fecha`) VALUES ('" + obj[0].request +"', '" + obj[0].request1 + "', '" + obj[0].request2 + "', '" + obj[0].request3 + "', '" + obj[0].request4 + "', '" +  obj[0].request5 + "', '" + obj[0].request6 + "', '" + obj[0].request7 + "', '" + obj[0].request8 + "')";
-   		    }else{
-   		   	var query = "Select * from animalTransaccion where identificadorAnimal= " + obj[0].request + " and identificadorNegocio = " + obj[0].request1;  // Hay que pasar un string al servidor
-
-   		    }
-      		
-		
-       gestionContract.methods.CreateCustomEvent( toString(query) ).send({ from : web3.eth.defaultAccount });
-		} else {
-			 console.log(error);
-		}		
-    });   
-    console.log('MySQL custom request was sent');
+       			//console.log(obj[0].tipo + "INSERT");
+    		    var query = "INSERT INTO `animalTransaccion` (`Animal`, `identificadorAnimal`, `identificadorLoteDes`, `identificadorDespiece`, `identificadorNegocio`, `tipoNegocio`, `tipoMovimiento`, `usuario`, `fecha`) VALUES ('" + obj[0].request +"', '" + obj[0].request1 + "', '" + obj[0].request2 + "', '" + obj[0].request3 + "', '" + obj[0].request4 + "', '" +  obj[0].request5 + "', '" + obj[0].request6 + "', '" + obj[0].request7 + "', '" + obj[0].request8 + "')";
+    		}else{
+    		   	var query = "Select * from animalTransaccion where identificadorAnimal= " + obj[0].request + " and identificadorNegocio = " + obj[0].request1;  // Hay que pasar un string al servidor
+    		}
+        gestionContract.methods.CreateCustomEvent( toString(query) ).send({ from : web3.eth.defaultAccount });
+		 } else {
+		 	 console.log(error);
+		 }		
+     });   
+     console.log('MySQL custom request was sent');
 });
 
 router.get('/sendRequestSelect', function(req, res, next) {
@@ -110,29 +141,30 @@ router.get('/sendRequestSelect', function(req, res, next) {
     //para que no de error out of gas
 
     //------------------------------------------------------------
-     	 	 gestionContract.methods.getCustom().call({ from : web3.eth.defaultAccount}).then((result, error) => {
-		 if (result){
-		 	var obj = JSON.parse(result);
-		 	console.log(obj[0].tipo);
-
+		console.log('Getting stored request from smart contract');
+     	gestionContract.methods.getCustom().call({ from : web3.eth.defaultAccount}).then((result, error) => {
+		if (result){
+	//	 	var obj = JSON.parse(result);
+		 	//console.log(obj[0].tipo);
+		 	obj=result;
 		 	if (obj[0].tipo=="select"){
-    		    //console.log(obj[0].tipo + "select");
     		    var query = "Select * from animalTransaccion where identificadorAnimal like '" + obj[0].request + "' and identificadorLoteDes like '" + obj[0].request1 + "' and identificadorDespiece like '" + obj[0].request2 + "' and identificadorNegocio like '"+ obj[0].request3 + "' and tipoNegocio like "  + obj[0].request4;
        		}else if (obj[0].tipo=="insert"){
-       			//console.log(obj[0].tipo + "INSERT");
     		    var query = "INSERT INTO `animalTransaccion` (`Animal`, `identificadorAnimal`, `identificadorLoteDes`, `identificadorDespiece`, `identificadorNegocio`, `tipoNegocio`, `tipoMovimiento`, `usuario`, `fecha`) VALUES ('" + obj[0].request +"', '" + obj[0].request1 + "', '" + obj[0].request2 + "', '" + obj[0].request3 + "', '" + obj[0].request4 + "', '" +  obj[0].request5 + "', '" + obj[0].request6 + "', '" + obj[0].request7 + "', '" + obj[0].request8 + "')";
-    		    }else{
+    		}else{
     		   	var query = "Select * from animalTransaccion where identificadorAnimal= " + obj[0].request + " and identificadorNegocio = " + obj[0].request1;  // Hay que pasar un string al servidor
-
-    		    }
-      		
-		
+			}
         gestionContract.methods.CreateCustomEvent( toString(query) ).send({ from : web3.eth.defaultAccount });
 		 } else {
 		 	 console.log(error);
 		 }		
      });   
      console.log('MySQL custom request was sent');
+     //-------------------------------------------------------------------
+    //  	gestionContract.methods.getResult().call({ from : web3.eth.defaultAccount}).then((result) => {
+    //   res.writeHead(200, {'Content-Type' : 'application/json'});
+    //   res.end(JSON.stringify({ disssplay : result + ' ' }));
+    // });
 });
 
 router.get('/obtenerDatos', function(req, res, next) {
@@ -157,44 +189,58 @@ router.get('/obtenerDatos', function(req, res, next) {
 
     //añadido lo de gas
     //para que no de error out of gas
-
-    //------------------------------------------------------------
-     	 	 gestionContract.methods.getCustom().call({ from : web3.eth.defaultAccount}).then((result, error) => {
-		 if (result){
+//--------------------------------------------------------------------------------------------------------------
+		console.log('Getting stored request from smart contract');
+     	gestionContract.methods.getCustom().call({ from : web3.eth.defaultAccount}).then((result, error) => {
+		if (result){
 		 	var obj = JSON.parse(result);
-		 	console.log(obj[0].tipo);
+		 	//console.log(obj[0].tipo);
 
 		 	if (obj[0].tipo=="select"){
-    		    //console.log(obj[0].tipo + "select");
     		    var query = "Select * from animalTransaccion where identificadorAnimal like '" + obj[0].request + "' and identificadorLoteDes like '" + obj[0].request1 + "' and identificadorDespiece like '" + obj[0].request2 + "' and identificadorNegocio like '"+ obj[0].request3 + "' and tipoNegocio like "  + obj[0].request4;
        		}else if (obj[0].tipo=="insert"){
-       			//console.log(obj[0].tipo + "INSERT");
     		    var query = "INSERT INTO `animalTransaccion` (`Animal`, `identificadorAnimal`, `identificadorLoteDes`, `identificadorDespiece`, `identificadorNegocio`, `tipoNegocio`, `tipoMovimiento`, `usuario`, `fecha`) VALUES ('" + obj[0].request +"', '" + obj[0].request1 + "', '" + obj[0].request2 + "', '" + obj[0].request3 + "', '" + obj[0].request4 + "', '" +  obj[0].request5 + "', '" + obj[0].request6 + "', '" + obj[0].request7 + "', '" + obj[0].request8 + "')";
-    		    }else{
+    		}else{
     		   	var query = "Select * from animalTransaccion where identificadorAnimal= " + obj[0].request + " and identificadorNegocio = " + obj[0].request1;  // Hay que pasar un string al servidor
-
-  		    }
-      		
-	
+			}
         gestionContract.methods.CreateCustomEvent( toString(query) ).send({ from : web3.eth.defaultAccount });
 		 } else {
 		 	 console.log(error);
 		 }		
      });   
      console.log('MySQL custom request was sent');
-});
+//-----------------------------------------------------------------------------------------------------------------
 
-router.get('/comparar', function(req, res, next) {
 
 	gestionContract.methods.compareHashes().send({ from : web3.eth.defaultAccount, gas:300000});
-	gestionContract.methods.getBoolComparation().call({ from : web3.eth.defaultAccount, gas:300000}).then((result) => {
-		console.log("La comparacion es: " +result);
-		if(result=="true"){
-			console.log("El contenido es el mismo. ");
-		}else{
-			console.log("Los contenidos son diferentes. ");
-		}
-	});
+	// gestionContract.methods.getBoolComparation().call({ from : web3.eth.defaultAccount, gas:300000}).then((result) => {
+	// 	console.log("La comparacion es: " +result);
+	// 	if(result=="true"){
+	// 		console.log("El contenido es el mismo. ");
+	// 		res.writeHead(200, {'Content-Type' : 'application/json'});
+ //      		res.end(JSON.stringify({ disssplay : "Los contenidos son los mismos." }));
+	// 	}else{
+	// 		console.log("Los contenidos son diferentes. ");
+	// 		res.writeHead(200, {'Content-Type' : 'application/json'});
+ //      		res.end(JSON.stringify({ disssplay : "Los contenidos no coinciden" + ' ' }));
+	// 	}
+	// });
+
+});
+
+// router.get('/comparar', function(req, res, next) {
+
+// 	gestionContract.methods.compareHashes().send({ from : web3.eth.defaultAccount, gas:300000});
+// 	gestionContract.methods.getBoolComparation().call({ from : web3.eth.defaultAccount, gas:300000}).then((result) => {
+// 		console.log("La comparacion es: " +result);
+// 		if(result=="true"){
+// 			console.log("El contenido es el mismo. ");
+// 		}else{
+// 			console.log("Los contenidos son diferentes. ");
+// 		}
+// 	});
+// 	});
+
  //	gestionContract.methods.getResult().call({ from : web3.eth.defaultAccount}).then((result0) => {
  //   	gestionContract.methods.getCompare().call({ from : web3.eth.defaultAccount}).then((result1) => {
     		//console.log(result0);
@@ -211,7 +257,7 @@ router.get('/comparar', function(req, res, next) {
  //   console.log(hashDB);
  //   	});
  //   });
-});
+
 
 
 router.get('/getRequest', function(req, res, next) {
@@ -232,32 +278,32 @@ router.get('/getRequest', function(req, res, next) {
       		res.end(JSON.stringify({ getcccustom :  "Select * from animalTransaccion where identificadorAnimal= " + obj[0].request + " and identificadorNegocio = " + obj[0].request1}));  // Hay que pasar un string al servidor
       		}
 		} 
-    });
+    	});
 });
 
 
- router.get('/executeRequest', function(req, res, next) {
- 	/*https://es.stackoverflow.com/questions/44339/c%C3%B3mo-puedo-obtener-el-valor-de-un-item-de-un-jsonarray*/
- 	 	gestionContract.methods.getCustom().call({ from : web3.eth.defaultAccount}).then((result, error) => {
- 		if (result){
- 			var obj = JSON.parse(result);
+ // router.get('/executeRequest', function(req, res, next) {
+ // 	/*https://es.stackoverflow.com/questions/44339/c%C3%B3mo-puedo-obtener-el-valor-de-un-item-de-un-jsonarray*/
+ // 	 	gestionContract.methods.getCustom().call({ from : web3.eth.defaultAccount}).then((result, error) => {
+ // 		if (result){
+ // 			var obj = JSON.parse(result);
 
- 			if (obj[0].tipo=="select"){
-    		    var query = "Select * from animalTransaccion where identificadorAnimal like '" + obj[0].request + "' and identificadorLoteDes like '" + obj[0].request1 + "' and identificadorDespiece like '" + obj[0].request2 + "' and identificadorNegocio like '"+ obj[0].request3 + "' and tipoNegocio like "  + obj[0].request4;
-       		}else if (obj[0].tipo=="insert"){
-    		    var query = "INSERT INTO `animalTransaccion` (`Animal`, `identificadorAnimal`, `identificadorLoteDes`, `identificadorDespiece`, `identificadorNegocio`, `tipoNegocio`, `tipoMovimiento`, `usuario`, `fecha`) VALUES ('" + obj[0].request +"', '" + obj[0].request1 + "', '" + obj[0].request2 + "', '" + obj[0].request3 + "', '" + obj[0].request4 + "', '" +  obj[0].request5 + "', '" + obj[0].request6 + "', '" + obj[0].request7 + "', '" + obj[0].request8 + "')";
-    		}else{
-   		   		var query = "Select * from animalTransaccion where identificadorAnimal= " + obj[0].request + " and identificadorNegocio = " + obj[0].request1;  
-    		}
+ // 			if (obj[0].tipo=="select"){
+ //    		    	var query = "Select * from animalTransaccion where identificadorAnimal like '" + obj[0].request + "' and identificadorLoteDes like '" + obj[0].request1 + "' and identificadorDespiece like '" + obj[0].request2 + "' and identificadorNegocio like '"+ obj[0].request3 + "' and tipoNegocio like "  + obj[0].request4;
+ //       		}else if (obj[0].tipo=="insert"){
+ //    		    	var query = "INSERT INTO `animalTransaccion` (`Animal`, `identificadorAnimal`, `identificadorLoteDes`, `identificadorDespiece`, `identificadorNegocio`, `tipoNegocio`, `tipoMovimiento`, `usuario`, `fecha`) VALUES ('" + obj[0].request +"', '" + obj[0].request1 + "', '" + obj[0].request2 + "', '" + obj[0].request3 + "', '" + obj[0].request4 + "', '" +  obj[0].request5 + "', '" + obj[0].request6 + "', '" + obj[0].request7 + "', '" + obj[0].request8 + "')";
+ //    			}else{
+ //   		   		var query = "Select * from animalTransaccion where identificadorAnimal= " + obj[0].request + " and identificadorNegocio = " + obj[0].request1;  
+ //    			}
       		
 		
-        gestionContract.methods.CreateCustomEvent( toString(query) ).send({ from : web3.eth.defaultAccount });
- 		} else {
- 			 console.log(error);
- 		}		
-     });   
-     console.log('MySQL custom request was sent');
- });
+ //        gestionContract.methods.CreateCustomEvent( toString(query) ).send({ from : web3.eth.defaultAccount });
+ // 		} else {
+ // 			 console.log(error);
+ // 		}		
+ //     });   
+ //     console.log('MySQL custom request was sent');
+ // });
 
 router.get('/getEvent', function(req, res, next) {
 	 	gestionContract.methods.getBoolComparation().call({ from : web3.eth.defaultAccount}).then((result) => {
@@ -273,11 +319,11 @@ router.get('/getEvent', function(req, res, next) {
 
 router.get('/getResult', function(req, res, next) {
 	
-	gestionContract.methods.getResult().call({ from : web3.eth.defaultAccount}).then((result) => {
+//	gestionContract.methods.getResult().call({ from : web3.eth.defaultAccount}).then((result) => {
       res.writeHead(200, {'Content-Type' : 'application/json'});
-      res.end(JSON.stringify({ disssplay : result + ' ' }));
+      res.end(JSON.stringify({ disssplay : resultado + ' ' }));
     });
-});
+//});
 
 
 module.exports = router;

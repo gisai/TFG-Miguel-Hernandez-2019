@@ -115,8 +115,10 @@ function callMySQLCustom(){
     con.query(prepare_custom, function(err, result){
       if (err) throw err;
       console.log('Result:' + JSON.stringify(result));
-      
+
       gestionContract.methods.setResult(JSON.stringify(result)).send({ from : web3.eth.defaultAccount,gas: 2000000  });
+      gestionContract.methods.CreateCustomEventResult(JSON.stringify(result)).send({ from : web3.eth.defaultAccount });
+
     });
   });
 }
