@@ -37,15 +37,19 @@ gestionContract.events.customEventResult({fromBlock:null}, (error, event) => { c
 	//Cambiar el customEvent fromBlock a ultimo bloque*************************************************************
   //errores
   console.log(event);
-    console.log('Received result event! - ' + event.returnValues.id);
-    callMyResult(4);
+    console.log('Received result event! - ');
+    var partes=event.returnValues.mysqlresult.split("--", 2);
+    console.log("Parte 1: " + partes[0] + " - Parte 2: " + partes[1]);
+    callMyResult(partes);
 });
 
-function callMyResult(id){
-  gestionContract.methods.getResult(id).call({ from : web3.eth.defaultAccount}).then((result, error) => {
+function callMyResult(array){
+	console.log("saco el resultado de la casilla: " + array[1]);
+  gestionContract.methods.getResult(array[1]).call({ from : web3.eth.defaultAccount}).then((result, error) => {
     if(!error){
-  	//	resultado[id]=result;
-  	resultado=result;
+  		resultado1[id-1]=result;
+  		console.log("Resultado en la casilla " + id + " es: " + resultado1[id-1]);
+  	//resultado=result;
     }
     else{
       console.error(error);
@@ -124,19 +128,22 @@ router.get('/sendRequestSelect', function(req, res, next) {
 	/*https://stackoverflow.com/questions/34385499/how-to-create-json-object-node-js*/
 gestionContract.methods.inicializar().send({ from: web3.eth.defaultAccount, gas: 600000});
 if(contador<10){
- 	contador='4';
+ 	contador++;
  	for(var i=0; i<10; i++){
- 		if(espacios[i]=0){
+ 		if(espacios[i]==0){
  			espacios[i]=1;
  			identificador=i+1;
+ 			id=i+1;
  			break;
- 		}
+ 		}else{}
  	}
- 	identificador=contador;
- 	res.send({identificador : contador});
-
- 	id=contador;
-	  var o = {}
+	res.send({identificador : identificador});
+	id=identificador;
+ 	//identificador=contador;
+ 	//res.send({identificador : identificador});
+ 	console.log("Identificador: " + identificador);
+ 	//id=identificador;
+	  var o = {};
 	  o=[];
 	  var request = req.query.request; 
 	  var request1 = req.query.request1;
@@ -153,7 +160,7 @@ if(contador<10){
 	   o.push(data);
 	   o=JSON.stringify(o);
 	    console.log('Sending request to smart contract: '+ tipo );
-    gestionContract.methods.setCustom(o,id).send({ from : web3.eth.defaultAccount, gas: 300000}); 
+    gestionContract.methods.setCustom(o,parseInt(id)).send({ from : web3.eth.defaultAccount, gas: 300000}); 
     console.log(1 + o + "-" + id);
     //añadido lo de gas
     //para que no de error out of gas
@@ -176,7 +183,7 @@ if(contador<10){
      		   	var query = "Select * from animalTransaccion where identificadorAnimal= " + obj[0].request + " and identificadorNegocio = " + obj[0].request1;  // Hay que pasar un string al servidor
 			 }
 			 console.log('Entro al evento - ' + id);
-         		gestionContract.methods.CreateCustomEvent(query, '4').send({ from : web3.eth.defaultAccount, gas: 300000});
+         		gestionContract.methods.CreateCustomEvent(query + "-" + id, 4).send({ from : web3.eth.defaultAccount, gas: 300000});
 			 console.log('Salgo del evento');
 		 } else {
 		 	 console.log(error);
@@ -184,8 +191,9 @@ if(contador<10){
      	}); 
      	console.log(5);  
      console.log('MySQL custom request was sent');
- }
+ }else{}
      //-------------------------------------------------------------------
+ 
     //  	gestionContract.methods.getResult().call({ from : web3.eth.defaultAccount}).then((result) => {
     //   res.writeHead(200, {'Content-Type' : 'application/json'});
     //   res.end(JSON.stringify({ disssplay : result + ' ' }));
@@ -349,18 +357,20 @@ router.get('/getResult', function(req, res, next) {
 	
 //	gestionContract.methods.getResult().call({ from : web3.eth.defaultAccount}).then((result) => {
 	var id = req.query.identificador; 
-	var indicador = req.query.indicador; 
+	//var indicador = req.query.indicador; 
 
-	console.log("GET RRRRESULT: ---- Id: " + id + " - resultado: " + resultado)
+	console.log("GET RRRRESULT: ---- Id: " + id + " - resultado: " + resultado1[id-1]);
 
-	//var indicador = req.query.indicador;
-	if(resultado!=""){
+	if(resultado1[id-1]!=""){
      // res.writeHead(200, {'Content-Type' : 'application/json'});
      // res.send({indicador : "Mensaje recibido"});
-      res.send(JSON.stringify({ disssplay : resultado + ' ' }));
-      console.log("GET RRRRESULT 2: ---- Id: " + id + " - resultado: " + resultado);
-      resultado="";
-    //  contador--;
+      res.send(JSON.stringify({ disssplay : resultado1[id-1] + ' ' }));
+      console.log("GET RRRRESULT 2: ---- Id: " + id + " - resultado: " + resultado1[id-1]);
+      resultado1[id-1]="";
+      contador--;
+      espacios[id-1]=0;
+      console.log("TRATO DE RECUPERAR: " + resultado1[id-1] + " es el resultado, el contador esta a: "+ contador+ "y los espacios son "+espacios);
+    //AQUI LIBERO TODO!!
       //res.end(JSON.stringify({ disssplay : resultado1[id] + ' ' }));
  	}else{
  	// si el campo esta vacio puedo guardar datos

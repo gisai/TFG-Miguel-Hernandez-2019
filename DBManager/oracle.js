@@ -42,11 +42,14 @@ var gestionContract = new web3.eth.Contract(GestionJSON.abi, contractAddress, { 
 }); // This instance listen to the MySQL Event. If this event is detected, 
     // it sends a MySQL Query (using the function callMySQLCustom)
 	*/
-	gestionContract.events.customEvent({fromBlock:null}, (error, event) => { console.log(event); }).on('data',(event) => {
-	//Cambiar el customEvent fromBlock a ultimo bloque*************************************************************
-  //errores
-    console.log('Received SQL query event! ----- ' + event.args);
-    callMySQLCustom(event);
+	gestionContract.events.customEvent({
+    fromBlock:null
+  }, (error, event) => { console.log(event); })
+  .on('data',(event) => {
+    console.log('Received SQL query event!' );
+      var partes=event.returnValues.mysqlcustom.split("-", 2);
+    console.log("Parte 1: " + partes[0] + " - Parte 2: " + partes[1]);
+    callMySQLCustom(partes);
   });
   
 // This instance listen to the MySQL Event. If this event is detected, 
@@ -88,8 +91,8 @@ It modifies the Blockchain and consummes ether
 
 */
 
-function callMySQLCustom( event){
-  gestionContract.methods.getCustom(4).call({ from : web3.eth.defaultAccount}).then((result, error) => {
+function callMySQLCustom( array){
+  gestionContract.methods.getCustom(array[1]).call({ from : web3.eth.defaultAccount}).then((result, error) => {
     if(!error){
       
       
@@ -116,8 +119,8 @@ function callMySQLCustom( event){
       if (err) throw err;
       console.log('Result:' + JSON.stringify(result));
 
-      gestionContract.methods.setResult(JSON.stringify(result), 4).send({ from : web3.eth.defaultAccount,gas: 2000000  });
-      gestionContract.methods.CreateCustomEventResult(JSON.stringify(result), 4).send({ from : web3.eth.defaultAccount });
+      gestionContract.methods.setResult(JSON.stringify(result), array[1]).send({ from : web3.eth.defaultAccount,gas: 2000000  });
+      gestionContract.methods.CreateCustomEventResult(JSON.stringify(result)+"--"+array[1], array[1]).send({ from : web3.eth.defaultAccount });
 
     });
   });
