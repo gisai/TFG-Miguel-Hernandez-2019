@@ -126,7 +126,6 @@ router.get('/sendRequestInsert', function(req, res, next) {
 
 router.get('/sendRequestSelect', function(req, res, next) {
 	/*https://stackoverflow.com/questions/34385499/how-to-create-json-object-node-js*/
-gestionContract.methods.inicializar().send({ from: web3.eth.defaultAccount, gas: 600000});
 if(contador<10){
  	contador++;
  	for(var i=0; i<10; i++){
@@ -134,14 +133,14 @@ if(contador<10){
  			espacios[i]=1;
  			identificador=i+1;
  			id=i+1;
+ 		//	gestionContract.methods.inicializar(identificador).send({ from: web3.eth.defaultAccount, gas: 600000});
+ 			//DA ERROR
  			break;
  		}else{}
  	}
-	res.send({identificador : identificador});
+//	res.send({identificador : identificador});
 	id=identificador;
- 	//identificador=contador;
- 	//res.send({identificador : identificador});
- 	console.log("Identificador: " + identificador);
+ 	//console.log("Identificador: " + identificador);
  	//id=identificador;
 	  var o = {};
 	  o=[];
@@ -168,9 +167,11 @@ if(contador<10){
     //------------------------------------------------------------
 		console.log('Getting stored request from smart contract');
      	console.log("2 - "  + id);
-     	gestionContract.methods.getCustom(id).call({ from : web3.eth.defaultAccount, gas: 600000}).then((result, error) => {
+     	gestionContract.methods.getCustom(id).call({ from : web3.eth.defaultAccount, gas: 1200000}).then((result, error) => {
 		console.log(id  + " paso3 - " + result );
 		if (result){
+			res.send({identificador : identificador});
+
 		 	var obj = JSON.parse(result);
 		 	console.log(4);
 		 	console.log(result);
@@ -186,7 +187,15 @@ if(contador<10){
          		gestionContract.methods.CreateCustomEvent(query + "-" + id, 4).send({ from : web3.eth.defaultAccount, gas: 300000});
 			 console.log('Salgo del evento');
 		 } else {
-		 	 console.log(error);
+		 	 console.log("Error: "+ error);
+		 	 espacios[id-1]=0;
+//		 	 resultado1[id-1]="";
+		 	 identificador=98;
+		 	 res.send({identificador : identificador});
+      		 contador--;
+      			//gestionContract.methods.limpiarId(id).send({ from: web3.eth.defaultAccount, gas: 600000});
+
+
 		}	
      	}); 
      	console.log(5);  
@@ -361,7 +370,7 @@ router.get('/getResult', function(req, res, next) {
 
 	console.log("GET RRRRESULT: ---- Id: " + id + " - resultado: " + resultado1[id-1]);
 
-	if(resultado1[id-1]!=""){
+	if(resultado1[id-1]!="" && resultado1[id-1]!=undefined){
      // res.writeHead(200, {'Content-Type' : 'application/json'});
      // res.send({indicador : "Mensaje recibido"});
       res.send(JSON.stringify({ disssplay : resultado1[id-1] + ' ' }));
@@ -369,6 +378,8 @@ router.get('/getResult', function(req, res, next) {
       resultado1[id-1]="";
       contador--;
       espacios[id-1]=0;
+      gestionContract.methods.limpiarId(id).send({ from: web3.eth.defaultAccount, gas: 600000});
+
       console.log("TRATO DE RECUPERAR: " + resultado1[id-1] + " es el resultado, el contador esta a: "+ contador+ "y los espacios son "+espacios);
     //AQUI LIBERO TODO!!
       //res.end(JSON.stringify({ disssplay : resultado1[id] + ' ' }));

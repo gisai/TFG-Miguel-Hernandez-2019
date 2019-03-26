@@ -24,7 +24,7 @@ function sendRequestInsert(){
 	// jQuery.get( url [, data ] [, success ] [, dataType ] )
 	// Permite cargar datos desde el servidor mediante un HTTP GET request 
 	function sendRequestSelect(){
-
+		id=99;
 		$.get('/sendRequestSelect', {request :$('#0setcustom').val(), request1 :$('#1setcustom').val(), request2 :$('#2setcustom').val(), request3 :$('#3setcustom').val(), request4 :$('#4setcustom').val(), tipo :"select"}, function(data){ 
 				//alert("String modified in the Blockchain");
 				id=data.identificador;
@@ -36,6 +36,7 @@ function sendRequestInsert(){
 		// $(selector).val(value) establece el valor del atributo value
 			//alert("String modified in the Blockchain");
 		});
+		
 		getResult();
 
 	}
@@ -90,9 +91,11 @@ function getEvent(){
 					$('#resultcustom').html(data.disssplay);   // Coge los elementos con id = "resultcustom"
 
 					//getResult();
-				}else{			
+				}else if(id==99){			
 					//indicador=1;
 					setTimeout(getResult,3000);
+				}else{
+					sendRequestSelect()
 				}
 		//setTimeout(getResult,3000);
 

@@ -21,6 +21,8 @@ contract Gestion {
 	}
 	mapping (int256 => datosStruct) mappingUsuarios;
 
+
+
 	//https://ethereum.stackexchange.com/questions/6121/parse-json-in-solidity
 	
     event customEvent (string mysqlcustom, int256 identificador);
@@ -28,11 +30,11 @@ contract Gestion {
 	
 	event customEventResult(string mysqlresult, int256 identificador);
 	
-	function inicializar () public{
-		for(int256 i=1; i<=10; i++){
-			mappingUsuarios[i]=datosStruct("","","","",i);
+	function inicializar (int256 identificador) public{
+		//for(int256 i=1; i<=10; i++){
+			mappingUsuarios[identificador]=datosStruct("","","","",identificador);
 
-		}
+		//}
 	}
 
 	function setCustom (string memory input, int256  id) public {
