@@ -6,7 +6,10 @@ var Web3            = require('web3'),
     GestionJSON  = require(path.join(__dirname, '../build/contracts/Gestion.json'));
 
 var resultado="";
+var resultado1=["","","","","","","","","",""];
+var espacios=[0,0,0,0,0,0,0,0,0,0];
 
+var contador=0;
 const contractAddress = "0x586f02AF0f59867CC3D73B663a718Af9468d2142";
 
 if(typeof web3 !== 'undefined'){
@@ -33,14 +36,16 @@ var gestionContract = new web3.eth.Contract(GestionJSON.abi, contractAddress, { 
 gestionContract.events.customEventResult({fromBlock:null}, (error, event) => { console.log(event); }).on('data',(event) => {
 	//Cambiar el customEvent fromBlock a ultimo bloque*************************************************************
   //errores
-    console.log('Received result event!');
-    callMyResult();
+  console.log(event);
+    console.log('Received result event! - ' + event.returnValues.id);
+    callMyResult(4);
 });
 
-function callMyResult(){
-  gestionContract.methods.getResult().call({ from : web3.eth.defaultAccount}).then((result, error) => {
+function callMyResult(id){
+  gestionContract.methods.getResult(id).call({ from : web3.eth.defaultAccount}).then((result, error) => {
     if(!error){
-  		resultado=result;
+  	//	resultado[id]=result;
+  	resultado=result;
     }
     else{
       console.error(error);
@@ -59,6 +64,9 @@ router.get('/', function(req, res, next) {
 //INSERT INTO `animalTransaccion` (`Animal`, `identificadorAnimal`, `identificadorLoteDes`, `identificadorDespiece`, `identificadorNegocio`, `tipoNegocio`, `tipoMovimiento`, `usuario`, `fecha`) VALUES ('Vaca', 'vaca0', 'asdfgh', 'asdfgh', 'asdfgh', '0', '0', '0', CURRENT_TIMESTAMP);
 router.get('/sendRequestInsert', function(req, res, next) {
 	/*https://stackoverflow.com/questions/34385499/how-to-create-json-object-node-js*/
+ if(contador<10){
+ 	contador++;
+ 	id=contador;
 	  var o = {}
 	  o=[];
 	  var request = req.query.request; 
@@ -84,41 +92,50 @@ router.get('/sendRequestInsert', function(req, res, next) {
 	   o.push(data);
 	   o=JSON.stringify(o);
 	    console.log('Sending request to smart contract: '+ tipo);
-    gestionContract.methods.setCustom(/*request*/o).send({ from : web3.eth.defaultAccount, gas: 300000}); 
-    //añadido lo de gas
-    //para que no de error out of gas
-
-
-
-
-
+      gestionContract.methods.setCustom(/*request*/o, id).send({ from : web3.eth.defaultAccount, gas: 300000}); 
+    	//añadido lo de gas
+    	//para que no de error out of gas
 
     //------------------------------------------------------------
 		console.log('Getting stored request from smart contract');
-     	gestionContract.methods.getCustom().call({ from : web3.eth.defaultAccount}).then((result, error) => {
+     	gestionContract.methods.getCustom(id).call({ from : web3.eth.defaultAccount}).then((result, error) => {
 		if (result){
 		 	var obj = JSON.parse(result);
-		 	//console.log(obj[0].tipo);
 
 		 	if (obj[0].tipo=="select"){
-    		    //console.log(obj[0].tipo + "select");
     		    var query = "Select * from animalTransaccion where identificadorAnimal like '" + obj[0].request + "' and identificadorLoteDes like '" + obj[0].request1 + "' and identificadorDespiece like '" + obj[0].request2 + "' and identificadorNegocio like '"+ obj[0].request3 + "' and tipoNegocio like "  + obj[0].request4;	
       		}else if (obj[0].tipo=="insert"){
-       			//console.log(obj[0].tipo + "INSERT");
     		    var query = "INSERT INTO `animalTransaccion` (`Animal`, `identificadorAnimal`, `identificadorLoteDes`, `identificadorDespiece`, `identificadorNegocio`, `tipoNegocio`, `tipoMovimiento`, `usuario`, `fecha`) VALUES ('" + obj[0].request +"', '" + obj[0].request1 + "', '" + obj[0].request2 + "', '" + obj[0].request3 + "', '" + obj[0].request4 + "', '" +  obj[0].request5 + "', '" + obj[0].request6 + "', '" + obj[0].request7 + "', '" + obj[0].request8 + "')";
     		}else{
     		   	var query = "Select * from animalTransaccion where identificadorAnimal= " + obj[0].request + " and identificadorNegocio = " + obj[0].request1;  // Hay que pasar un string al servidor
     		}
-        gestionContract.methods.CreateCustomEvent( toString(query) ).send({ from : web3.eth.defaultAccount });
+        gestionContract.methods.CreateCustomEvent( toString(query), id).send({ from : web3.eth.defaultAccount });
 		 } else {
 		 	 console.log(error);
 		 }		
      });   
      console.log('MySQL custom request was sent');
+ }else{
+ 	console.log("Demasiados clientes en activo");
+ }
 });
 
 router.get('/sendRequestSelect', function(req, res, next) {
 	/*https://stackoverflow.com/questions/34385499/how-to-create-json-object-node-js*/
+gestionContract.methods.inicializar().send({ from: web3.eth.defaultAccount, gas: 600000});
+if(contador<10){
+ 	contador='4';
+ 	for(var i=0; i<10; i++){
+ 		if(espacios[i]=0){
+ 			espacios[i]=1;
+ 			identificador=i+1;
+ 			break;
+ 		}
+ 	}
+ 	identificador=contador;
+ 	res.send({identificador : contador});
+
+ 	id=contador;
 	  var o = {}
 	  o=[];
 	  var request = req.query.request; 
@@ -136,30 +153,38 @@ router.get('/sendRequestSelect', function(req, res, next) {
 	   o.push(data);
 	   o=JSON.stringify(o);
 	    console.log('Sending request to smart contract: '+ tipo );
-    gestionContract.methods.setCustom(o).send({ from : web3.eth.defaultAccount, gas: 300000}); 
+    gestionContract.methods.setCustom(o,id).send({ from : web3.eth.defaultAccount, gas: 300000}); 
+    console.log(1 + o + "-" + id);
     //añadido lo de gas
     //para que no de error out of gas
 
     //------------------------------------------------------------
 		console.log('Getting stored request from smart contract');
-     	gestionContract.methods.getCustom().call({ from : web3.eth.defaultAccount}).then((result, error) => {
+     	console.log("2 - "  + id);
+     	gestionContract.methods.getCustom(id).call({ from : web3.eth.defaultAccount, gas: 600000}).then((result, error) => {
+		console.log(id  + " paso3 - " + result );
 		if (result){
-	//	 	var obj = JSON.parse(result);
-		 	//console.log(obj[0].tipo);
+		 	var obj = JSON.parse(result);
+		 	console.log(4);
+		 	console.log(result);
 		 	obj=result;
 		 	if (obj[0].tipo=="select"){
-    		    var query = "Select * from animalTransaccion where identificadorAnimal like '" + obj[0].request + "' and identificadorLoteDes like '" + obj[0].request1 + "' and identificadorDespiece like '" + obj[0].request2 + "' and identificadorNegocio like '"+ obj[0].request3 + "' and tipoNegocio like "  + obj[0].request4;
-       		}else if (obj[0].tipo=="insert"){
-    		    var query = "INSERT INTO `animalTransaccion` (`Animal`, `identificadorAnimal`, `identificadorLoteDes`, `identificadorDespiece`, `identificadorNegocio`, `tipoNegocio`, `tipoMovimiento`, `usuario`, `fecha`) VALUES ('" + obj[0].request +"', '" + obj[0].request1 + "', '" + obj[0].request2 + "', '" + obj[0].request3 + "', '" + obj[0].request4 + "', '" +  obj[0].request5 + "', '" + obj[0].request6 + "', '" + obj[0].request7 + "', '" + obj[0].request8 + "')";
-    		}else{
-    		   	var query = "Select * from animalTransaccion where identificadorAnimal= " + obj[0].request + " and identificadorNegocio = " + obj[0].request1;  // Hay que pasar un string al servidor
-			}
-        gestionContract.methods.CreateCustomEvent( toString(query) ).send({ from : web3.eth.defaultAccount });
+     		    var query = "Select * from animalTransaccion where identificadorAnimal like '" + obj[0].request + "' and identificadorLoteDes like '" + obj[0].request1 + "' and identificadorDespiece like '" + obj[0].request2 + "' and identificadorNegocio like '"+ obj[0].request3 + "' and tipoNegocio like "  + obj[0].request4;
+        		}else if (obj[0].tipo=="insert"){
+     		    var query = "INSERT INTO `animalTransaccion` (`Animal`, `identificadorAnimal`, `identificadorLoteDes`, `identificadorDespiece`, `identificadorNegocio`, `tipoNegocio`, `tipoMovimiento`, `usuario`, `fecha`) VALUES ('" + obj[0].request +"', '" + obj[0].request1 + "', '" + obj[0].request2 + "', '" + obj[0].request3 + "', '" + obj[0].request4 + "', '" +  obj[0].request5 + "', '" + obj[0].request6 + "', '" + obj[0].request7 + "', '" + obj[0].request8 + "')";
+     		}else{
+     		   	var query = "Select * from animalTransaccion where identificadorAnimal= " + obj[0].request + " and identificadorNegocio = " + obj[0].request1;  // Hay que pasar un string al servidor
+			 }
+			 console.log('Entro al evento - ' + id);
+         		gestionContract.methods.CreateCustomEvent(query, '4').send({ from : web3.eth.defaultAccount, gas: 300000});
+			 console.log('Salgo del evento');
 		 } else {
 		 	 console.log(error);
-		 }		
-     });   
+		}	
+     	}); 
+     	console.log(5);  
      console.log('MySQL custom request was sent');
+ }
      //-------------------------------------------------------------------
     //  	gestionContract.methods.getResult().call({ from : web3.eth.defaultAccount}).then((result) => {
     //   res.writeHead(200, {'Content-Type' : 'application/json'});
@@ -169,6 +194,9 @@ router.get('/sendRequestSelect', function(req, res, next) {
 
 router.get('/obtenerDatos', function(req, res, next) {
 	/*https://stackoverflow.com/questions/34385499/how-to-create-json-object-node-js*/
+if(contador<10){
+	contador++;
+ 	id=contador;
 	  var o = {}
 	  o=[];
 	  var request = req.query.request; 
@@ -184,14 +212,14 @@ router.get('/obtenerDatos', function(req, res, next) {
 	   o=JSON.stringify(o);
 	    console.log('Sending comparation to smart contract: ' + tipo);
  
-    gestionContract.methods.setCustom(o).send({ from : web3.eth.defaultAccount, gas: 300000}); 
-    gestionContract.methods.setCompare(request2).send({ from : web3.eth.defaultAccount, gas: 600000}); 
+    gestionContract.methods.setCustom(o, id).send({ from : web3.eth.defaultAccount, gas: 300000}); 
+    gestionContract.methods.setCompare(request2, id).send({ from : web3.eth.defaultAccount, gas: 600000}); 
 
     //añadido lo de gas
     //para que no de error out of gas
 //--------------------------------------------------------------------------------------------------------------
 		console.log('Getting stored request from smart contract');
-     	gestionContract.methods.getCustom().call({ from : web3.eth.defaultAccount}).then((result, error) => {
+     	gestionContract.methods.getCustom(id).call({ from : web3.eth.defaultAccount}).then((result, error) => {
 		if (result){
 		 	var obj = JSON.parse(result);
 		 	//console.log(obj[0].tipo);
@@ -203,7 +231,7 @@ router.get('/obtenerDatos', function(req, res, next) {
     		}else{
     		   	var query = "Select * from animalTransaccion where identificadorAnimal= " + obj[0].request + " and identificadorNegocio = " + obj[0].request1;  // Hay que pasar un string al servidor
 			}
-        gestionContract.methods.CreateCustomEvent( toString(query) ).send({ from : web3.eth.defaultAccount });
+        gestionContract.methods.CreateCustomEvent( toString(query), id).send({ from : web3.eth.defaultAccount });
 		 } else {
 		 	 console.log(error);
 		 }		
@@ -212,7 +240,7 @@ router.get('/obtenerDatos', function(req, res, next) {
 //-----------------------------------------------------------------------------------------------------------------
 
 
-	gestionContract.methods.compareHashes().send({ from : web3.eth.defaultAccount, gas:300000});
+	gestionContract.methods.compareHashes(id).send({ from : web3.eth.defaultAccount, gas:300000});
 	// gestionContract.methods.getBoolComparation().call({ from : web3.eth.defaultAccount, gas:300000}).then((result) => {
 	// 	console.log("La comparacion es: " +result);
 	// 	if(result=="true"){
@@ -225,7 +253,7 @@ router.get('/obtenerDatos', function(req, res, next) {
  //      		res.end(JSON.stringify({ disssplay : "Los contenidos no coinciden" + ' ' }));
 	// 	}
 	// });
-
+ }
 });
 
 // router.get('/comparar', function(req, res, next) {
@@ -320,8 +348,28 @@ router.get('/getEvent', function(req, res, next) {
 router.get('/getResult', function(req, res, next) {
 	
 //	gestionContract.methods.getResult().call({ from : web3.eth.defaultAccount}).then((result) => {
-      res.writeHead(200, {'Content-Type' : 'application/json'});
-      res.end(JSON.stringify({ disssplay : resultado + ' ' }));
+	var id = req.query.identificador; 
+	var indicador = req.query.indicador; 
+
+	console.log("GET RRRRESULT: ---- Id: " + id + " - resultado: " + resultado)
+
+	//var indicador = req.query.indicador;
+	if(resultado!=""){
+     // res.writeHead(200, {'Content-Type' : 'application/json'});
+     // res.send({indicador : "Mensaje recibido"});
+      res.send(JSON.stringify({ disssplay : resultado + ' ' }));
+      console.log("GET RRRRESULT 2: ---- Id: " + id + " - resultado: " + resultado);
+      resultado="";
+    //  contador--;
+      //res.end(JSON.stringify({ disssplay : resultado1[id] + ' ' }));
+ 	}else{
+ 	// si el campo esta vacio puedo guardar datos
+  	    res.send(JSON.stringify({ disssplay : "" }));
+ 	}	
+ 		//if (indicador) {
+ 		//	resultado="";
+ 		//}
+      //resultado1[id]="";
     });
 //});
 

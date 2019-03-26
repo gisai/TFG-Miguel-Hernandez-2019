@@ -9,7 +9,8 @@
   <body>
   
   <script>
-
+var id=99;
+var indicador=0;
 function sendRequestInsert(){
 		getResult();
 		$.get('/sendRequestInsert', {request :$('#animal').val(), request1 :$('#identificadorAnimal').val(), request2 :$('#identificadorLoteDes').val(), request3 :$('#identificadorDespiece').val(), request4 :$('#identificadorNegocio').val(), request5 :$('#tipoNegocio').val(), request6 :$('#tipoMovimiento').val(), request7 :$('#usuario').val(), request8 :$('#fecha').val(), tipo :"insert"}, function(data){ 
@@ -23,16 +24,20 @@ function sendRequestInsert(){
 	// jQuery.get( url [, data ] [, success ] [, dataType ] )
 	// Permite cargar datos desde el servidor mediante un HTTP GET request 
 	function sendRequestSelect(){
-		getResult();
-		$.get('/sendRequestSelect', {request :$('#0setcustom').val(), request1 :$('#1setcustom').val(), request2 :$('#2setcustom').val(), request3 :$('#3setcustom').val(), request4 :$('#4setcustom').val(), tipo :"select"}, function(data){ 
-							alert("String modified in the Blockchain");
 
+		$.get('/sendRequestSelect', {request :$('#0setcustom').val(), request1 :$('#1setcustom').val(), request2 :$('#2setcustom').val(), request3 :$('#3setcustom').val(), request4 :$('#4setcustom').val(), tipo :"select"}, function(data){ 
+				//alert("String modified in the Blockchain");
+				id=data.identificador;
+				console.log(id);
+				//alert(id);
 
 		// El primer valor con '' indica que seguimos en la misma página 
 		// $(selector).val() devuelve atributo value
 		// $(selector).val(value) establece el valor del atributo value
 			//alert("String modified in the Blockchain");
 		});
+		getResult();
+
 	}
 	
 	function obtenerDatos(){
@@ -78,9 +83,19 @@ function getEvent(){
 	}
 	
 	function getResult(){
-		$.get('/getResult',  function(data){
-			$('#resultcustom').html(data.disssplay);   // Coge los elementos con id = "resultcustom"
-			setTimeout(getResult,1000);
+		$.get('/getResult', {identificador : id/*, indicador : indicador*/},  function(data){
+			//alert(indicador);
+			if(id!=99 && data.disssplay!=""){
+
+					$('#resultcustom').html(data.disssplay);   // Coge los elementos con id = "resultcustom"
+
+					//getResult();
+				}else{			
+					//indicador=1;
+					setTimeout(getResult,3000);
+				}
+		//setTimeout(getResult,3000);
+
 		}, 'json');  
 	}
 

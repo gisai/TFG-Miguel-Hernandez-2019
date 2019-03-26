@@ -45,8 +45,8 @@ var gestionContract = new web3.eth.Contract(GestionJSON.abi, contractAddress, { 
 	gestionContract.events.customEvent({fromBlock:null}, (error, event) => { console.log(event); }).on('data',(event) => {
 	//Cambiar el customEvent fromBlock a ultimo bloque*************************************************************
   //errores
-    console.log('Received SQL query event!');
-    callMySQLCustom();
+    console.log('Received SQL query event! ----- ' + event.args);
+    callMySQLCustom(event);
   });
   
 // This instance listen to the MySQL Event. If this event is detected, 
@@ -88,8 +88,8 @@ It modifies the Blockchain and consummes ether
 
 */
 
-function callMySQLCustom(){
-  gestionContract.methods.getCustom().call({ from : web3.eth.defaultAccount}).then((result, error) => {
+function callMySQLCustom( event){
+  gestionContract.methods.getCustom(4).call({ from : web3.eth.defaultAccount}).then((result, error) => {
     if(!error){
       
       
@@ -116,8 +116,8 @@ function callMySQLCustom(){
       if (err) throw err;
       console.log('Result:' + JSON.stringify(result));
 
-      gestionContract.methods.setResult(JSON.stringify(result)).send({ from : web3.eth.defaultAccount,gas: 2000000  });
-      gestionContract.methods.CreateCustomEventResult(JSON.stringify(result)).send({ from : web3.eth.defaultAccount });
+      gestionContract.methods.setResult(JSON.stringify(result), 4).send({ from : web3.eth.defaultAccount,gas: 2000000  });
+      gestionContract.methods.CreateCustomEventResult(JSON.stringify(result), 4).send({ from : web3.eth.defaultAccount });
 
     });
   });

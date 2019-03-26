@@ -4,22 +4,40 @@ pragma solidity ^0.5.0;
 
 contract Gestion {
 
-	string result = "No Query"; // The result of the query is stored in this variable
+	//string result = "No Query"; // The result of the query is stored in this variable
 
-	string custom = "No request"; // We will store the complete custom request in this variable
+	//string custom = "No request"; // We will store the complete custom request in this variable
 
-	string compare = "No compare";
+	//string compare = "No compare";
 
-	string boolComparation= "false";
+	//string boolComparation= "false";
+
+	struct datosStruct{
+		string result;
+		string custom;
+		string compare;
+		string boolComparation;
+		int256 id;
+	}
+	mapping (int256 => datosStruct) mappingUsuarios;
+
 	//https://ethereum.stackexchange.com/questions/6121/parse-json-in-solidity
 	
-    event customEvent (string mysqlcustom);
+    event customEvent (string mysqlcustom, int256 identificador);
     // Event used to send a MySQL Query. The input is the query input. It allows to record the query
 	
-	event customEventResult(string mysqlresult);
+	event customEventResult(string mysqlresult, int256 identificador);
 	
-	function setCustom (string memory input) public {
-		custom = input;
+	function inicializar () public{
+		for(int256 i=1; i<=10; i++){
+			mappingUsuarios[i]=datosStruct("","","","",i);
+
+		}
+	}
+
+	function setCustom (string memory input, int256  id) public {
+	///	custom = input;
+		mappingUsuarios[id].custom=input;
 	}
 
 	/*
@@ -35,8 +53,9 @@ contract Gestion {
 	*/
 
 
-	function getCustom () public view returns(string memory)  {
-		return custom;
+	function getCustom (int256  id) public view returns(string memory)  {
+		//return custom;
+		return mappingUsuarios[id].custom;
 	}
 	
 
@@ -54,8 +73,9 @@ contract Gestion {
 	*/
 
 
-	function setResult(string memory input) public {
-		result = input;
+	function setResult(string memory input, int256 id) public {
+		//result = input;
+		mappingUsuarios[id].result=input;
 	}
 
 	/*
@@ -72,8 +92,9 @@ contract Gestion {
 	*/
 	
 
-	function getResult() public view returns(string memory)  {
-		return result;
+	function getResult(int256 id) public view returns(string memory)  {
+		//return result;
+		return mappingUsuarios[id].result;
 	}
 	
 	/*
@@ -91,8 +112,9 @@ contract Gestion {
 
 		
 	
-	function setCompare (string memory input) public {
-		compare = input;
+	function setCompare (string memory input, int256 id) public {
+		//compare = input;
+		mappingUsuarios[id].compare=input;
 	}
 
 	/*
@@ -108,8 +130,9 @@ contract Gestion {
 	*/
 
 
-	function getCompare () public view returns(string memory)  {
-		return compare;
+	function getCompare (int256 id) public view returns(string memory)  {
+	//	return compare;
+		return mappingUsuarios[id].compare;
 	}
 	
 
@@ -131,23 +154,57 @@ contract Gestion {
 	
 
 
-	function getBoolComparation () public view returns(string memory)  {
-			return boolComparation;
+	function getBoolComparation (int256 id) public view returns(string memory)  {
+			//return boolComparation;
+			return mappingUsuarios[id].boolComparation;
 	}
 
-	function compareHashes () public  returns(string memory) {
-		if(keccak256(bytes(result)) == keccak256(bytes(compare))){
-			boolComparation="true";
+	function compareHashes (int256 id) public  returns(string memory) {
+		if(keccak256(bytes(mappingUsuarios[id].result)) == keccak256(bytes(mappingUsuarios[id].compare))){
+			mappingUsuarios[id].boolComparation="true";
 		}else{
-		boolComparation="false";
+			mappingUsuarios[id].boolComparation="false";
 		}
-		return boolComparation;
+		return mappingUsuarios[id].boolComparation;
 
+	}
+
+	function limpiarId (int256 id) public  {
+			mappingUsuarios[id].custom="";
+			mappingUsuarios[id].result="";
+			mappingUsuarios[id].compare="";			
+			mappingUsuarios[id].boolComparation="";
+	}
+
+	function traducir(string memory input) public returns (int256 id){
+			if(keccak256(bytes(input))==keccak256("1")){
+				id=1;
+			}else if(keccak256(bytes(input))==keccak256("2")){
+				id=2;
+			}else if(keccak256(bytes(input))==keccak256("3")){
+				id=3;
+			}else if(keccak256(bytes(input))==keccak256("4")){
+				id=4;
+			}else if(keccak256(bytes(input))==keccak256("5")){
+				id=5;
+			}else if(keccak256(bytes(input))==keccak256("6")){
+				id=6;
+			}else if(keccak256(bytes(input))==keccak256("7")){
+				id=7;
+			}else if(keccak256(bytes(input))==keccak256("8")){
+				id=8;
+			}else if(keccak256(bytes(input))==keccak256("9")){
+				id=9;
+			}else if(keccak256(bytes(input))==keccak256("10")){
+				id=10;
+			}else{
+				id=99;
+			}
 	}
 	
 
-	function CreateCustomEvent(string memory input) public {
-		emit customEvent(input);
+	function CreateCustomEvent(string memory input, int256 identificador) public {
+		emit customEvent(input, identificador);
 	}
 
 	/*
@@ -162,8 +219,8 @@ contract Gestion {
 
 
 	*/
-	function CreateCustomEventResult(string memory input) public{
-		emit customEventResult(input);
+	function CreateCustomEventResult(string memory input, int256 identificador) public{
+		emit customEventResult(input, identificador);
 	}
 
 }
