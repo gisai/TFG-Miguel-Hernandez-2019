@@ -11,19 +11,24 @@
   <script>
 var id=99;
 var indicador=0;
+var metodo=0;
 function sendRequestInsert(){
-		getResult();
+		metodo=1;
+		id=99;
 		$.get('/sendRequestInsert', {request :$('#animal').val(), request1 :$('#identificadorAnimal').val(), request2 :$('#identificadorLoteDes').val(), request3 :$('#identificadorDespiece').val(), request4 :$('#identificadorNegocio').val(), request5 :$('#tipoNegocio').val(), request6 :$('#tipoMovimiento').val(), request7 :$('#usuario').val(), request8 :$('#fecha').val(), tipo :"insert"}, function(data){ 
+			id=data.identificador;
 		// El primer valor con '' indica que seguimos en la misma página 
 		// $(selector).val() devuelve atributo value
 		// $(selector).val(value) establece el valor del atributo value
-			alert("String modified in the Blockchain");
+			//alert("String modified in the Blockchain");
 		});
+		getResult();
 	}
 	// Ver app.js, las variables se definen allí: setstring, increase...
 	// jQuery.get( url [, data ] [, success ] [, dataType ] )
 	// Permite cargar datos desde el servidor mediante un HTTP GET request 
 	function sendRequestSelect(){
+		metodo=2;
 		id=99;
 		$.get('/sendRequestSelect', {request :$('#0setcustom').val(), request1 :$('#1setcustom').val(), request2 :$('#2setcustom').val(), request3 :$('#3setcustom').val(), request4 :$('#4setcustom').val(), tipo :"select"}, function(data){ 
 				//alert("String modified in the Blockchain");
@@ -42,17 +47,21 @@ function sendRequestInsert(){
 	}
 	
 	function obtenerDatos(){
-		getResult();
-		getEvent();
+		metodo=3;
+		id=99
 		$.get('/obtenerDatos', {request :$('#animalid').val(), request1 :$('#negocioid').val(), request2 :$('#evento').val(), tipo :"comparar"}, function(data){ 
+			id=data.identificador;
+			//alert(id);
 			console.log("REQUEST" + request);
 		// El primer valor con '' indica que seguimos en la misma página 
 		// $(selector).val() devuelve atributo value
 		// $(selector).val(value) establece el valor del atributo value
-			$('#getcustom').html(data.getcccustom);   // Coge los elementos con id = "getcustom"
-			$('#event').html(data.disssplay);   // Coge los elementos con id = "resultcustom"
-			alert("String modified in the Blockchain");
+		//	$('#getcustom').html(data.getcccustom);   // Coge los elementos con id = "getcustom"
+		//	$('#event').html(data.disssplay);   // Coge los elementos con id = "resultcustom"
+		//	alert("String modified in the Blockchain");
 		});
+		getResult();
+		//getEvent();
 	}
 
 	function comparar(){
@@ -77,25 +86,40 @@ function sendRequestInsert(){
 	}	
 
 function getEvent(){
-		$.get('/getEvent',  function(data){
-			$('#event').html(data.disssplay);   // Coge los elementos con id = "resultcustom"
-			setTimeout(getEvent,1000);
+		$.get('/getEvent', {identificador : id/*, indicador : indicador*/}, function(data){
+//			if(id!=99 && data.disssplayR!=""){
+				$('#event').html(data.disssplayR);   // Coge los elementos con id = "resultcustom"
+		//	setTimeout(getEvent,1000);
+//			}
 		}, 'json');  
 	}
 	
 	function getResult(){
 		$.get('/getResult', {identificador : id/*, indicador : indicador*/},  function(data){
 			//alert(indicador);
-			if(id!=99 && data.disssplay!=""){
+			//alert(metodo);
+				if(id!=99 && data.disssplay!=""){
+					if(metodo==3){
+						getEvent();
+					}else{
+						$('#event').html("No estamos comparando");   // Coge los elementos con id = "resultcustom"
 
+					}
 					$('#resultcustom').html(data.disssplay);   // Coge los elementos con id = "resultcustom"
 
 					//getResult();
-				}else if(id==99){			
+				}else if(id==98){
+					if(metodo==1){
+						sendRequestInsert()
+					}else if(metodo==2){
+						sendRequestSelect();
+					}else{
+						obtenerDatos();
+					}
+				}else if( data.disssplay==""){			
 					//indicador=1;
-					setTimeout(getResult,3000);
-				}else{
-					sendRequestSelect()
+				//	getEvent();
+					setTimeout(getResult, 3000);
 				}
 		//setTimeout(getResult,3000);
 
