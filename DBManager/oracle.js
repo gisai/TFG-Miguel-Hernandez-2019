@@ -78,34 +78,41 @@ The result of the query ( String type) is stored in the Blockchain
 It modifies the Blockchain and consummes ether
 */
 
-function callMySQLCustom( array){
-  gestionContract.methods.getCustom(array[1]).call({ from : web3.eth.defaultAccount}).then((result, error) => {
-    if(!error){
-      
-      
-      var obj = JSON.parse(result);
-  
-          if (obj[0].tipo=="select"){
-          var query = "Select * from animalTransaccion where identificadorAnimal like '" + obj[0].request + "' and identificadorLoteDes like '" + obj[0].request1 + "' and identificadorDespiece like '" + obj[0].request2 + "' and identificadorNegocio like '"+ obj[0].request3 + "' and tipoNegocio like "  + obj[0].request4;
-          }else if (obj[0].tipo=="insert"){
-          var query = "INSERT INTO `animalTransaccion` (`Animal`, `identificadorAnimal`, `identificadorLoteDes`, `identificadorDespiece`, `identificadorNegocio`, `tipoNegocio`, `tipoMovimiento`, `usuario`, `fecha`) VALUES ('" + obj[0].request +"', '" + obj[0].request1 + "', '" + obj[0].request2 + "', '" + obj[0].request3 + "', '" + obj[0].request4 + "', '" +  obj[0].request5 + "', '" + obj[0].request6 + "', '" + obj[0].request7 + "', '" + obj[0].request8 + "')";
+function callMySQLCustom( obj){
+ // gestionContract.methods.getCustom(array[1]).call({ from : web3.eth.defaultAccount}).then((result, error) => {
+ //   if(!error){
+  var comp=0;
+      console.log("hemos entrado!");
+      console.log(obj);
+      //var obj0=obj[0];
+      var obj1=obj[1];
+      var obj0 = JSON.parse(obj[0]);
+  console.log(obj0);
+  console.log(obj1);
+  console.log(obj0[0].tipo);
+          if (obj0[0].tipo=="select"){
+          var query = "Select * from animalTransaccion where identificadorAnimal like '" + obj0[0].request + "' and identificadorLoteDes like '" + obj0[0].request1 + "' and identificadorDespiece like '" + obj0[0].request2 + "' and identificadorNegocio like '"+ obj0[0].request3 + "' and tipoNegocio like "  + obj0[0].request4;
+          }else if (obj0[0].tipo=="insert"){
+          var query = "INSERT INTO `animalTransaccion` (`Animal`, `identificadorAnimal`, `identificadorLoteDes`, `identificadorDespiece`, `identificadorNegocio`, `tipoNegocio`, `tipoMovimiento`, `usuario`, `fecha`) VALUES ('" + obj0[0].request +"', '" + obj0[0].request1 + "', '" + obj0[0].request2 + "', '" + obj0[0].request3 + "', '" + obj0[0].request4 + "', '" +  obj0[0].request5 + "', '" + obj0[0].request6 + "', '" + obj0[0].request7 + "', '" + obj0[0].request8 + "')";
           }else{
-          var query = "Select * from animalTransaccion where identificadorAnimal= '" + obj[0].request + "' and identificadorNegocio = '" + obj[0].request1 + "'";  // Hay que pasar un string al servidor
-
+          var query = "Select * from animalTransaccion where identificadorAnimal= '" + obj0[0].request + "' and identificadorNegocio = '" + obj0[0].request1 + "'";  // Hay que pasar un string al servidor
+          comp=1;
           }
 		console.log("Query to perform in DB: "+query);
       prepare_custom = query;
-    }
-    else{
-      console.error(error);
-    }
+ //   }
+ //   else{
+ //     console.error("Error base de datos: " + error);
+ //   }
     con.query(prepare_custom, function(err, result){
       if (err) throw err;
-      gestionContract.methods.setResult(JSON.stringify(result), array[1]).send({ from : web3.eth.defaultAccount,gas: 2000000  });
-      gestionContract.methods.CreateCustomEventResult(JSON.stringify(result)+"--"+array[1], array[1]).send({ from : web3.eth.defaultAccount });
+      if(comp==1){
+      gestionContract.methods.setResult(JSON.stringify(result), obj[1]).send({ from : web3.eth.defaultAccount,gas: 2000000  });
+      }
+      gestionContract.methods.CreateCustomEventResult(JSON.stringify(result)+"--"+obj[1]+"--"+comp).send({ from : web3.eth.defaultAccount });
 
     });
-  });
+//  });
 }
 
 

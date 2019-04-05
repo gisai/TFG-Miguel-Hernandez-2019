@@ -64,7 +64,7 @@ function getEvent(){
 	}
 	
 	function getResult(){
-		$.get('/getResult', {identificador : id},  function(data){
+		$.get('/getResult', {identificador : id, metodo : metodo},  function(data){
 				if(id!=99 && data.disssplay!=""){
 					if(metodo==3){
 						getEvent();

@@ -5,10 +5,13 @@ var Web3            = require('web3'),
     path            = require('path')
     GestionJSON  = require(path.join(__dirname, '../build/contracts/Gestion.json'));
 
-var resultado="";
+var resultadoNuevo=[];
+var espaciosNuevo=[];
 var resultado1=["","","","","","","","","",""];
 var espacios=[0,0,0,0,0,0,0,0,0,0];
 var comparacion=["","","","","","","","","",""];
+
+var contadorNuevo=0;
 
 var contador=0;
 const contractAddress = "0x586f02AF0f59867CC3D73B663a718Af9468d2142";
@@ -37,25 +40,35 @@ gestionContract.events.customEventResult({fromBlock:null}, (error, event) => { c
 
   console.log(event);
     console.log('Received result event! - ');
-    var partes=event.returnValues.mysqlresult.split("--", 2);
+    var partes=event.returnValues.mysqlresult.split("--", 3);
     callMyResult(partes);
+    console.log(partes);
 });
 
 function callMyResult(array){
+	if(array[2]==1){
 	gestionContract.methods.compareHashes(array[1]).send({ from : web3.eth.defaultAccount, gas:300000}).then((result, error) => {
 		console.log("***callMyResult*** HASSHES COMPARADOS");
 		gestionContract.methods.getBoolComparation(array[1]).call({ from : web3.eth.defaultAccount, gas:300000}).then((result, error) => {
 			console.log("***callMyResult*** El resultado de la comparacion es: " + result);
-			comparacion[id-1]=result; //save the result of the comparation in the server
+			comparacion[array[1]-1]=result; //save the result of the comparation in the server
+
 		});
 	});
-  	gestionContract.methods.getResult(array[1]).call({ from : web3.eth.defaultAccount}).then((result, error) => {
-    	if(!error){
-  			resultado1[array[1]-1]=result; //save the response of the DDBB in the server
-  		}else{
-      		console.error(error);
-    	}
- 	});
+	resultado1[array[1]-1]=array[0];
+  			console.log("Resultado1: "+resultado1);
+  			  			console.log("Resultado1:pos "+resultado1[array[1]-1]);
+  			console.log("Array0: "+array[0]);
+	}else{
+
+  			resultadoNuevo[array[1]]=array[0]; //save the response of the DDBB in the server
+  			console.log(resultadoNuevo);
+  			console.log(array[0]);
+  	}
+ // 		}else{
+ //     		console.error(error);
+ //   	}
+ //	});
 }
 
 
@@ -67,21 +80,29 @@ router.get('/', function(req, res, next) {
   res.render('index', { title: 'Web App for Smart Contract' });
 });
 router.get('/sendRequestInsert', function(req, res, next) {
- if(contador<10){ //check if there is any free id
- 	contador++;
- 	 for(var i=0; i<10; i++){
- 		if(espacios[i]==0){
- 			espacios[i]=1;
- 			identificador=i+1;//server array positions are from 0 to 9 while smartcontract positions are from 1 to 10
- 			id=i+1;
- 			gestionContract.methods.inicializar(identificador).send({ from: web3.eth.defaultAccount, gas: 600000});
- 			//DA ERROR
- 			break;
- 		}else{}
- 	}
-	id=identificador;
-	  var o = {}
-	  o=[];
+	console.log(1);
+	contadorNuevo++;
+	identificador=-1;
+	for( var i=0; i<espaciosNuevo.length; i++){
+		if(espaciosNuevo[i]==0){
+			espaciosNuevo[i]=1;
+			identificador=i;
+		}else{}
+	}
+	console.log(2);
+	if(identificador==-1){
+		espaciosNuevo.push(espaciosNuevo.length);
+		espaciosNuevo[espaciosNuevo.length-1]=1;
+		identificador=espaciosNuevo.length-1;
+		resultadoNuevo.push("");
+		console.log(resultadoNuevo);
+		console.log(espaciosNuevo);
+	}else{}
+		id=identificador;
+
+		console.log(3);
+		var obj = {};
+		obj=[];
 	  var request = req.query.request; 
 	  var request1 = req.query.request1;
 	  var request2 = req.query.request2;
@@ -102,56 +123,55 @@ router.get('/sendRequestInsert', function(req, res, next) {
 				'request7': request7,
 				'request8': request8,
 				'tipo': tipo};
-	   o.push(data);
-	   o=JSON.stringify(o);
-	    console.log('***sendRequestInsert*** Sending request to smart contract ');
-      gestionContract.methods.setCustom(o, id).send({ from : web3.eth.defaultAccount, gas: 300000}).then((result, error) => { 
-		console.log('***sendRequestInsert*** Getting stored request from smart contract');
-     	gestionContract.methods.getCustom(id).call({ from : web3.eth.defaultAccount, gas: 300000}).then((result, error) => {
-		if (result){
-			res.send({identificador : identificador}); //id is send to the user to know which id has her operation
-		 	var obj = JSON.parse(result);
-		 	//building the query
-		 	if (obj[0].tipo=="select"){
-    		    var query = "Select * from animalTransaccion where identificadorAnimal like '" + obj[0].request + "' and identificadorLoteDes like '" + obj[0].request1 + "' and identificadorDespiece like '" + obj[0].request2 + "' and identificadorNegocio like '"+ obj[0].request3 + "' and tipoNegocio like "  + obj[0].request4;	
-      		}else if (obj[0].tipo=="insert"){
-    		    var query = "INSERT INTO `animalTransaccion` (`Animal`, `identificadorAnimal`, `identificadorLoteDes`, `identificadorDespiece`, `identificadorNegocio`, `tipoNegocio`, `tipoMovimiento`, `usuario`, `fecha`) VALUES ('" + obj[0].request +"', '" + obj[0].request1 + "', '" + obj[0].request2 + "', '" + obj[0].request3 + "', '" + obj[0].request4 + "', '" +  obj[0].request5 + "', '" + obj[0].request6 + "', '" + obj[0].request7 + "', '" + obj[0].request8 + "')";
-    		}else{
-    		   	var query = "Select * from animalTransaccion where identificadorAnimal= " + obj[0].request + " and identificadorNegocio = " + obj[0].request1;  // Hay que pasar un string al servidor
-    		}
-        gestionContract.methods.CreateCustomEvent(query+ "-" + id, id).send({ from : web3.eth.defaultAccount });
-		 } else {
-		 	 console.log("***sendRequestInsert*** Error: "+ error);
-		 	 espacios[id-1]=0;
-		 	 identificador=98;
-		 	 res.send({identificador : identificador});
-      		 contador--;		 }		
-     });
-     });   
+			console.log(data);
+		obj.push(data);
+		console.log(obj);
+		var o=JSON.stringify(obj);
+		console.log(4);
+
+					res.send({identificador : identificador}); //id is send to the user to know which id has her operation
+
+
+			 		if (obj[0].tipo=="select"){
+			 			console.log(obj[0].tipo);
+	     			    var query = "Select * from animalTransaccion where identificadorAnimal like '" + obj[0].request + "' and identificadorLoteDes like '" + obj[0].request1 + "' and identificadorDespiece like '" + obj[0].request2 + "' and identificadorNegocio like '"+ obj[0].request3 + "' and tipoNegocio like "  + obj[0].request4;
+	        		}else if (o[0].tipo=="insert"){
+	        			console.log(obj[0].tipo);
+	     		    	var query = "INSERT INTO `animalTransaccion` (`Animal`, `identificadorAnimal`, `identificadorLoteDes`, `identificadorDespiece`, `identificadorNegocio`, `tipoNegocio`, `tipoMovimiento`, `usuario`, `fecha`) VALUES ('" + obj[0].request +"', '" + obj[0].request1 + "', '" + obj[0].request2 + "', '" + obj[0].request3 + "', '" + obj[0].request4 + "', '" +  obj[0].request5 + "', '" + obj[0].request6 + "', '" + obj[0].request7 + "', '" + obj[0].request8 + "')";
+	     			}else{
+	     		   		var query = "Select * from animalTransaccion where identificadorAnimal= " + obj[0].request + " and identificadorNegocio = " + obj[0].request1;  // Hay que pasar un string al servidor
+				 	}
+				 	console.log(query);
+				 	//send the event which is hear by the other part of the server
+	        	 	gestionContract.methods.CreateCustomEvent(o + "-" + id).send({ from : web3.eth.defaultAccount, gas: 300000}).then((result, error) =>{
+	        	 		console.log("evento enviado");
+	        	 	});
      console.log('***sendRequestInsert*** MySQL custom request was sent');
- }else{
- 	console.log("***sendRequestInsert*** Demasiados clientes en activo");
- }
 
 });
 
 router.get('/sendRequestSelect', function(req, res, next) {
-	if(contador<10){ //check if there is any free id
-	 	contador++;
-	 	for(var i=0; i<10; i++){
-	 		if(espacios[i]==0){
-	 			espacios[i]=1;
-	 			identificador=i+1;//server array positions are from 0 to 9 while smartcontract positions are from 1 to 10
-	 			id=i+1;
-	 			gestionContract.methods.inicializar(identificador).send({ from: web3.eth.defaultAccount, gas: 600000});
-	 			//DA ERROR
-	 			break;
-	 		}else{}
-	 	}
+	console.log(1);
+	contadorNuevo++;
+	identificador=-1;
+	for( var i=0; i<espaciosNuevo.length; i++){
+		if(espaciosNuevo[i]==0){
+			espaciosNuevo[i]=1;
+			identificador=i;
+		}else{}
+	}
+	console.log(2);
+	if(identificador==-1){
+		espaciosNuevo.push(espaciosNuevo.length);
+		espaciosNuevo[espaciosNuevo.length-1]=1;
+		identificador=espaciosNuevo.length-1;
+		resultadoNuevo.push("");
+	}else{}
 		id=identificador;
 
-		var o = {};
-		o=[];
+		console.log(3);
+		var obj = {};
+		obj=[];
 		var request = req.query.request; 
 		var request1 = req.query.request1;
 		var request2 = req.query.request2;
@@ -164,42 +184,36 @@ router.get('/sendRequestSelect', function(req, res, next) {
 			'request3': request3,
 			'request4': request4,
 			'tipo': tipo};
-		o.push(data);
-		o=JSON.stringify(o);
-		console.log('***sendRequestSelect*** Sending request to smart contract: '+ tipo );
-	    gestionContract.methods.setCustom(o,id).send({ from : web3.eth.defaultAccount, gas: 300000}).then((result, error) =>{ 	 
-			console.log('***sendRequestSelect*** Getting stored request from smart contract');
-	     	gestionContract.methods.getCustom(id).call({ from : web3.eth.defaultAccount, gas: 300000}).then((result, error) => {
-				if (result){
+			console.log(data);
+		obj.push(data);
+		console.log(obj);
+		var o=JSON.stringify(obj);
+		console.log(4);
+
 					res.send({identificador : identificador}); //id is send to the user to know which id has her operation
-				 	var obj = JSON.parse(result);
-				 	obj=result;
+
+
 			 		if (obj[0].tipo=="select"){
+			 			console.log(obj[0].tipo);
 	     			    var query = "Select * from animalTransaccion where identificadorAnimal like '" + obj[0].request + "' and identificadorLoteDes like '" + obj[0].request1 + "' and identificadorDespiece like '" + obj[0].request2 + "' and identificadorNegocio like '"+ obj[0].request3 + "' and tipoNegocio like "  + obj[0].request4;
-	        		}else if (obj[0].tipo=="insert"){
+	        		}else if (o[0].tipo=="insert"){
+	        			console.log(obj[0].tipo);
 	     		    	var query = "INSERT INTO `animalTransaccion` (`Animal`, `identificadorAnimal`, `identificadorLoteDes`, `identificadorDespiece`, `identificadorNegocio`, `tipoNegocio`, `tipoMovimiento`, `usuario`, `fecha`) VALUES ('" + obj[0].request +"', '" + obj[0].request1 + "', '" + obj[0].request2 + "', '" + obj[0].request3 + "', '" + obj[0].request4 + "', '" +  obj[0].request5 + "', '" + obj[0].request6 + "', '" + obj[0].request7 + "', '" + obj[0].request8 + "')";
 	     			}else{
 	     		   		var query = "Select * from animalTransaccion where identificadorAnimal= " + obj[0].request + " and identificadorNegocio = " + obj[0].request1;  // Hay que pasar un string al servidor
 				 	}
+				 	console.log(query);
 				 	//send the event which is hear by the other part of the server
-	        	 	gestionContract.methods.CreateCustomEvent(query + "-" + id, 4).send({ from : web3.eth.defaultAccount, gas: 300000});
-				} else {
-			 		console.log("***sendRequestSelect*** Error: "+ error);
-			 		espacios[id-1]=0;
-			 		identificador=98;
-			 		res.send({identificador : identificador});
-	      			contador--;
-	         		gestionContract.methods.limpiarId(id).send({ from: web3.eth.defaultAccount, gas: 600000});
-				}	
-	     	}); 
-	    }); 
+	        	 	gestionContract.methods.CreateCustomEvent(o + "-" + id).send({ from : web3.eth.defaultAccount, gas: 300000}).then((result, error) =>{
+	        	 		console.log("evento enviado");
+	        	 	});
+
 	    console.log('***sendRequestSelect*** MySQL custom request was sent');
-	}else{
-	 	console.log("***sendRequestSelect*** Demasiados clientes en activo");
-	}
+
 });
 
 router.get('/obtenerDatos', function(req, res, next) {
+	console.log(1);
 
 	if(contador<10){ //check if there is any free id
 		contador++;
@@ -208,15 +222,17 @@ router.get('/obtenerDatos', function(req, res, next) {
 	 			espacios[i]=1;
 	 			identificador=i+1;//server array positions are from 0 to 9 while smartcontract positions are from 1 to 10
 	 			id=i+1;
-	 			gestionContract.methods.inicializar(identificador).send({ from: web3.eth.defaultAccount, gas: 600000});
+	 		//	gestionContract.methods.inicializar(identificador).send({ from: web3.eth.defaultAccount, gas: 600000});
 	 			//DA ERROR
 	 			break;
 	 		}else{}
 	 	}
 		id=identificador;
+		res.send({identificador : identificador});//id is send to the user to know which id has her operation
+	console.log(2);
 
-		  var o = {}
-		  o=[];
+		  var obj = {}
+		  obj=[];
 		  var request = req.query.request; 
 		  var request1 = req.query.request1;
 		  var request2 = req.query.request2;//request2 does not go inside the JSON because is the element to compare
@@ -224,20 +240,20 @@ router.get('/obtenerDatos', function(req, res, next) {
 		  var data = {'request': request,
 					'request1': request1,
 					'tipo': tipo};
-		   o.push(data);
-		   o=JSON.stringify(o);
+						console.log(2.5);
+
+		   obj.push(data);
+		   var o=JSON.stringify(obj);
 		   console.log('***/obtenerDatos*** Sending comparation to smart contract: ' + tipo);
-	 
-	    gestionContract.methods.setCustom(o, id).send({ from : web3.eth.defaultAccount, gas: 300000}).then((result2, error2) => {
+	 	console.log(3);
+
+	  //  gestionContract.methods.setCustom(o, id).send({ from : web3.eth.defaultAccount, gas: 300000}).then((result2, error2) => {
 	    gestionContract.methods.setCompare(request2, id).send({ from : web3.eth.defaultAccount, gas: 600000}).then((result1, error1) => {
 
 			console.log('***/obtenerDatos*** Getting stored request from smart contract');
-	     	gestionContract.methods.getCustom(id).call({ from : web3.eth.defaultAccount}).then((result, error) => {//to be sure has been saved in the smartcontract
-			if (result){
 				console.log("***/obtenerDatos*** Devuelvo el identificador: " + identificador);
-				res.send({identificador : identificador});//id is send to the user to know which id has her operation
 
-			 	var obj = JSON.parse(result);
+			 	//var obj = JSON.parse(result);
 			 	//Building of the query
 			 	if (obj[0].tipo=="select"){
 	    		    var query = "Select * from animalTransaccion where identificadorAnimal like '" + obj[0].request + "' and identificadorLoteDes like '" + obj[0].request1 + "' and identificadorDespiece like '" + obj[0].request2 + "' and identificadorNegocio like '"+ obj[0].request3 + "' and tipoNegocio like "  + obj[0].request4;
@@ -247,18 +263,9 @@ router.get('/obtenerDatos', function(req, res, next) {
 	    		   	var query = "Select * from animalTransaccion where identificadorAnimal= " + obj[0].request + " and identificadorNegocio = " + obj[0].request1;  // Hay que pasar un string al servidor
 				}
 				//send the event which is hear by the other part of the server
-	        	gestionContract.methods.CreateCustomEvent( query+ "-" + id, id).send({ from : web3.eth.defaultAccount });
-			 } else {//if the JSON could not be saved in the smartcontract
-			 	 console.log("Error: "+ error);
-			 	 espacios[id-1]=0;
-			 	 identificador=98; //the meaning of id=98 is something went wrong. Start again
-	      		 contador--;
-	      		 res.send({identificador : identificador});//id is send to the user to know which id has her operation
-
-			 }		
+	        	gestionContract.methods.CreateCustomEvent( o+ "-" + id).send({ from : web3.eth.defaultAccount });
+			
 	     });   
-		 }); 
-	  });     
 	     console.log('MySQL custom request was sent');
 
 	 }else{
@@ -287,17 +294,35 @@ router.get('/getEvent', function(req, res, next) {
 router.get('/getResult', function(req, res, next) {
 	
 	var id = req.query.identificador; //user send to the server the id of her query
+	var metodo = req.query.metodo;
+	console.log("Metodo: "+metodo);
+      if(metodo==3){
+      		console.log("3 - Tengo que sacar del lugar con id: " + id-1 + " y lo que me encuentro es: " + resultado1[id-1]);
 
-	if(resultado1[id-1]!="" && resultado1[id-1]!=undefined){//when the result is ready i can send it to the user
-      res.send(JSON.stringify({ disssplay : resultado1[id-1] + ' ' })); 
-      resultado1[id-1]="";//Cleaning of the variables used in the server and Blockchain
-      contador--;
-      espacios[id-1]=0;
-      gestionContract.methods.limpiarId(id).send({ from: web3.eth.defaultAccount, gas: 600000});
- 	}else{
+        if(resultado1[id-1]!="" && resultado1[id-1]!=undefined){//when the result is ready i can send it to the user
+      	res.send(JSON.stringify({ disssplay : resultado1[id-1] + ' ' })); 
+      	resultado1[id-1]="";
+      	espacios[id-1]=0;
+      	contador--;
+      	 gestionContract.methods.limpiarId(id).send({ from: web3.eth.defaultAccount, gas: 600000});
+  	}else{
  	// If the result is not ready yet
   	    res.send(JSON.stringify({ disssplay : "" }));
- 	}	
+ 	}
+      }else{
+      		console.log("Tengo que sacar del lugar con id: " + id + " y lo que me encuentro es: " + resultadoNuevo[id]);
+
+	if(resultadoNuevo[id]!="" && resultadoNuevo[id]!=undefined){//when the result is ready i can send it to the user
+    	  res.send(JSON.stringify({ disssplay : resultadoNuevo[id] + ' ' })); 
+    	  resultadoNuevo[id]="";//Cleaning of the variables used in the server and Blockchain
+    	  contadorNuevo--;
+    	  espaciosNuevo[id]=0;
+  	}else{
+ 	// If the result is not ready yet
+  	    res.send(JSON.stringify({ disssplay : "" }));
+ 	}
+  	 }
+ 		
 
     });
 
