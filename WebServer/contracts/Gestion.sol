@@ -7,7 +7,6 @@ contract Gestion {
 
 	struct datosStruct{
 		string result;
-		string custom;
 		string compare;
 		string boolComparation;
 		int256 id;
@@ -24,44 +23,10 @@ contract Gestion {
 	// Event used to send a result. The input is the result and id. 
 
 	function inicializar (int256 identificador) public{
-			mappingUsuarios[identificador]=datosStruct("","","","",identificador);
+			mappingUsuarios[identificador]=datosStruct("","","",identificador);
 	}
 
-	function setCustom (string memory input, int256  id) public {
-		mappingUsuarios[id].custom=input;
-	}
-
-	/*
-	Function setCustom : 
-
-		- input: string, int
-
-		- output: none
-
-	Changes the input of the query.The new input replaces the old one, and is stored in the Blockchain.
-	Modifies the Blockchain, consumes Ether
-
-	*/
-
-
-	function getCustom (int256  id) public view returns(string memory)  {
-		return mappingUsuarios[id].custom;
-	}
 	
-
-	/*
-	Function getCustom : 
-
-		- input: int
-
-		- output: string
-
-	Returns the input of the query, stored in the blockchain.
-	Only gives the state of a variable, does not modify the blockchain.
-	Does not consume Ether
-
-	*/
-
 
 	function setResult(string memory input, int256 id) public {
 		mappingUsuarios[id].result=input;
@@ -186,7 +151,6 @@ contract Gestion {
 
 
 	function limpiarId (int256 id) public  {
-			mappingUsuarios[id].custom="";
 			mappingUsuarios[id].result="";
 			mappingUsuarios[id].compare="";			
 			mappingUsuarios[id].boolComparation="";
